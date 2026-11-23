@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Тест: Пользовательские интерфейсы (Урок 12)</title>
+    <style>
+      :root {
+        --bg: #161311;
+        --surface: #211c19;
+        --surface-2: #2b2521;
+        --border: #3d342e;
+        --text: #e7dfd8;
+        --muted: #b5a79c;
+        --title: #fff7ed;
+        --accent: #f59e0b;
+        --accent-2: #ea580c;
+        --accent-ink: #1c1208;
+        --code-bg: rgba(245, 158, 11, 0.16);
+        --code-fg: #fcd34d;
+        --ok-bg: rgba(34, 197, 94, 0.2);
+        --ok-bd: #22c55e;
+        --ok-fg: #86efac;
+        --bad-bg: rgba(244, 63, 94, 0.2);
+        --bad-bd: #f43f5e;
+        --bad-fg: #fda4af;
+      }
+
+      [data-theme="light"] {
+        --bg: #f4efe6;
+        --surface: #fffdf9;
+        --surface-2: #f9f4eb;
+        --border: #dfd5c5;
+        --text: #292524;
+        --muted: #6b5e54;
+        --title: #1c1917;
+        --accent: #b45309;
+        --accent-2: #c2410c;
+        --accent-ink: #ffffff;
+        --code-bg: #fef3c7;
+        --code-fg: #92400e;
+        --ok-bg: #dcfce7;
+        --ok-bd: #16a34a;
+        --ok-fg: #14532d;
+        --bad-bg: #ffe4e6;
+        --bad-bd: #e11d48;
+        --bad-fg: #881337;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Roboto, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 16px;
+      }
+
+      .app {
+        width: 100%;
+        max-width: 1060px;
+        min-height: 640px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px 6px 20px 6px;
+        display: grid;
+        grid-template-columns: 245px 1fr;
+        overflow: hidden;
+      }
+
+      .sidebar {
+        background: var(--surface-2);
+        border-right: 1px solid var(--border);
+        padding: 20px 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .brand {
+        font-family: Georgia, serif;
+        font-size: 1.15em;
+        font-weight: 700;
+        color: var(--title);
+        padding-bottom: 12px;
+        border-bottom: 1px dashed var(--border);
+      }
+      .brand span {
+        display: block;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 0.72em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--accent);
+        margin-bottom: 4px;
+      }
+
+      .points-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px;
+        margin-top: 12px;
+      }
+      .points-label {
+        font-size: 0.76em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .points-val {
+        font-size: 1.5em;
+        font-weight: 800;
+        color: var(--accent);
+        margin-top: 2px;
+      }
+      .meter {
+        height: 6px;
+        background: var(--border);
+        border-radius: 99px;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+      .meter-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--accent-2), var(--accent));
+        transition: width 0.25s;
+      }
+
+      .q-grid-title {
+        font-size: 0.8em;
+        color: var(--muted);
+        margin: 14px 0 8px;
+        font-weight: 600;
+      }
+      .q-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+      }
+
+      .q-dot {
+        height: 32px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 0.85em;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .q-dot.active {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+      .q-dot.done-ok {
+        background: var(--ok-bg);
+        border-color: var(--ok-bd);
+        color: var(--ok-fg);
+      }
+      .q-dot.done-bad {
+        background: var(--bad-bg);
+        border-color: var(--bad-bd);
+        color: var(--bad-fg);
+      }
+
+      .side-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .ghost-btn {
+        width: 100%;
+        padding: 9px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        font-size: 0.88em;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .ghost-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .main {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 26px 32px 22px;
+      }
+
+      .top-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        font-size: 0.9em;
+        color: var(--muted);
+      }
+      .badge {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      h1,
+      h2 {
+        font-family: Georgia, serif;
+        color: var(--title);
+        margin-bottom: 12px;
+      }
+      h1 {
+        font-size: 2em;
+      }
+      h2 {
+        font-size: 1.4em;
+      }
+      p {
+        font-size: 1.06em;
+        line-height: 1.6;
+        margin-bottom: 14px;
+      }
+      code {
+        background: var(--code-bg);
+        color: var(--code-fg);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: Consolas, monospace;
+        font-size: 0.92em;
+      }
+
+      .ticket {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-left: 5px solid var(--accent);
+        border-radius: 6px 12px 12px 6px;
+        padding: 20px;
+      }
+      .q-prompt {
+        font-size: 0.92em;
+        color: var(--muted);
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+
+      .opt {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        padding: 13px 16px;
+        margin-bottom: 10px;
+        font-size: 1.02em;
+        line-height: 1.45;
+        cursor: pointer;
+      }
+      .opt:last-child {
+        margin-bottom: 0;
+      }
+      .opt:hover:not(.locked) {
+        border-color: var(--accent);
+      }
+      .opt.correct {
+        background: var(--ok-bg) !important;
+        border-color: var(--ok-bd) !important;
+        color: var(--ok-fg) !important;
+        font-weight: 600;
+      }
+      .opt.wrong {
+        background: var(--bad-bg) !important;
+        border-color: var(--bad-bd) !important;
+        color: var(--bad-fg) !important;
+      }
+      .opt.locked {
+        cursor: default;
+      }
+
+      .callout {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 22px;
+      }
+
+      .footer-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 16px;
+        margin-top: 16px;
+        border-top: 1px solid var(--border);
+      }
+
+      .nav-btn {
+        padding: 11px 24px;
+        border-radius: 9px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--title);
+        font-size: 0.98em;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .nav-btn.primary {
+        background: linear-gradient(135deg, var(--accent-2), var(--accent));
+        border-color: transparent;
+        color: var(--accent-ink);
+      }
+      .nav-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      .summary-card {
+        text-align: center;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 30px 22px;
+      }
+      .big-num {
+        font-family: Georgia, serif;
+        font-size: 3.4em;
+        font-weight: 700;
+        color: var(--accent);
+        margin: 8px 0;
+      }
+
+      @media (max-width: 820px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+        }
+        .main {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app" id="appRoot">
+      <aside class="sidebar">
+        <div>
+          <div class="brand">
+            <span>Unity 2D / 3D</span>
+            UI и меню сцены
+          </div>
+
+          <div class="points-box">
+            <div class="points-label">Набрано баллов</div>
+            <div class="points-val"><span id="score">0</span> / 150</div>
+            <div class="meter">
+              <div class="meter-fill" id="meterFill"></div>
+            </div>
+          </div>
+
+          <div class="q-grid-title">Вопросы (1–15)</div>
+          <div class="q-grid" id="qGrid"></div>
+        </div>
+
+        <div class="side-actions">
+          <button type="button" class="ghost-btn" id="themeBtn">
+            Светлая тема
+          </button>
+          <button type="button" class="ghost-btn" id="resetBtn">
+            Начать заново
+          </button>
+        </div>
+      </aside>
+
+      <section class="main">
+        <div class="top-meta">
+          <span class="badge" id="stepBadge">Вступление</span>
+          <span id="progressText">Экран 1 из 17</span>
+        </div>
+
+        <div class="content" id="view"></div>
+
+        <div class="footer-nav">
+          <button type="button" class="nav-btn" id="prevBtn">← Назад</button>
+          <button type="button" class="nav-btn primary" id="nextBtn">
+            Далее →
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      (function () {
+        const QUESTIONS = [
+          {
+            q: "Где на панели <code>Hierarchy</code> должны находиться все элементы пользовательского интерфейса (UI), чтобы они корректно отображались на сцене?",
+            opts: [
+              "Быть дочерними объектами холста (<code>Canvas</code>)",
+              "Находиться внутри папки <code>Assets</code> на панели <code>Project</code>",
+              "Быть дочерними объектами <code>Main Camera</code> без <code>Canvas</code>",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Что произойдёт, если добавить элемент UI (например, <code>Image</code> или <code>Panel</code>) на сцену, где ещё нет холста?",
+            opts: [
+              "Unity автоматически создаст <code>Canvas</code> (а при необходимости и <code>EventSystem</code>) и разместит элемент на нём",
+              "Элемент появится в консоли, но не создастся на сцене",
+              "Появится ошибка компиляции до ручного создания холста",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Какой компонент преобразования используется у <code>Canvas</code> и всех элементов UI вместо обычного <code>Transform</code>?",
+            opts: [
+              "<code>Rect Transform</code>",
+              "<code>Grid Layout Transform</code>",
+              "<code>Mesh Transform</code>",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Какая клавиша в редакторе Unity активирует инструмент <code>Rect Tool</code> для удобной работы с прямоугольниками UI?",
+            opts: [
+              "Клавиша <code>T</code>",
+              "Клавиша <code>R</code>",
+              "Клавиша <code>F</code>",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Что происходит со свойствами <code>Pos X</code>, <code>Pos Y</code>, <code>Width</code> и <code>Height</code> в компоненте <code>Rect Transform</code>, если разделить якорь (растянуть его углы по сторонам)?",
+            opts: [
+              "Вместо них отображаются отступы <code>Left</code>, <code>Right</code>, <code>Top</code> и <code>Bottom</code> (режим растяжения)",
+              "Компонент <code>Rect Transform</code> полностью отключается",
+              "Появляются параметры физики <code>Mass</code> и <code>Drag</code>",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Какой пресет якорей (<code>Anchor Presets</code>) в задании с фоном <code>BackgroundSpace</code> позволяет растянуть изображение по всем четырём углам холста?",
+            opts: [
+              "<code>stretch</code> по горизонтали и <code>stretch</code> по вертикали (правый нижний квадрат в сетке)",
+              "<code>center</code> / <code>middle</code>",
+              "<code>top</code> / <code>left</code>",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Какое свойство компонента <code>Image</code> определяет, кликабельно ли изображение?",
+            opts: [
+              "<code>Raycast Target</code>",
+              "<code>Preserve Aspect</code>",
+              "<code>Image Type</code>",
+            ],
+            ans: 0,
+          },
+          {
+            q: "За что отвечает свойство <code>Preserve Aspect</code> у компонента <code>Image</code>?",
+            opts: [
+              "Сохраняет исходное соотношение сторон изображения при масштабировании",
+              "Задаёт цвет тонировки и прозрачность",
+              "Автоматически назначает материал <code>UI/Default</code>",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Какие значения свойств <code>Horizontal Overflow</code> и <code>Vertical Overflow</code> у текстового компонента означают перенос текста на следующую строку?",
+            opts: [
+              "<code>Wrap</code>",
+              "<code>Round</code>",
+              "<code>Overflow</code>",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Для чего у текстового компонента используется свойство <code>Best Fit</code>?",
+            opts: [
+              "Подбирает размер шрифта в заданном диапазоне (минимум — максимум), чтобы текст помещался в рамку",
+              "Автоматически переводит текст на английский язык",
+              "Добавляет тень под каждой буквой",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Какие состояния реакции перечислены в конспекте для свойства <code>Transition</code> компонента <code>Button</code>?",
+            opts: [
+              "<code>Normal</code>, <code>Highlighted</code>, <code>Pressed</code> и <code>Disabled</code>",
+              "<code>Start</code>, <code>Update</code>, <code>FixedUpdate</code> и <code>LateUpdate</code>",
+              "<code>Overlay</code>, <code>Camera</code> и <code>World</code>",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Как настроить реакцию кнопки <code>Button</code> при наведении курсора и при нажатии в задании 4?",
+            opts: [
+              "Использовать <code>Transition = Color Tint</code> и задать цвета для <code>Highlighted Color</code> и <code>Pressed Color</code>",
+              "Удалить компонент <code>Image</code> с кнопки",
+              "Отключить галочку <code>Interactable</code>",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Какой режим <code>Render Mode</code> у <code>Canvas</code> делает его частью игрового пространства (3D/2D мира), позволяя перемещать, вращать и масштабировать холст через активный <code>Rect Transform</code>?",
+            opts: [
+              "<code>World Space</code>",
+              "<code>Screen Space - Overlay</code>",
+              "<code>Screen Space - Camera</code>",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Какой <code>Texture Type</code> необходимо задать импортируемому изображению (например, <code>clouds.jpg</code>), чтобы использовать его как спрайт в UI?",
+            opts: [
+              "<code>Sprite (2D and UI)</code>",
+              "<code>Cookie</code>",
+              "<code>Cursor</code>",
+            ],
+            ans: 0,
+          },
+          {
+            q: "Что важно проверить в окне <code>Build Settings</code> (<code>Scenes In Build</code>) при настройке перехода из сцены меню <code>Menu</code> на сцену игры <code>Game</code>?",
+            opts: [
+              "Обе сцены сохранены, отмечены галочками, а сцена меню (<code>Menu</code>) стоит выше сцены игры",
+              "Сцена меню удалена из списка, а в сцене <code>Game</code> нет камеры",
+              "В списке оставлена только сцена <code>Game</code> без галочки",
+            ],
+            ans: 0,
+          },
+        ];
+
+        const PTS = 10;
+        const TOTAL_SLIDES = QUESTIONS.length + 2;
+        let score = 0;
+        let cur = 0;
+        let states = Array(QUESTIONS.length).fill(null);
+        let chosen = Array(QUESTIONS.length).fill(null);
+
+        function createShuffled() {
+          return QUESTIONS.map((item) => {
+            const order = item.opts.map((_, idx) => idx);
+            for (let i = order.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [order[i], order[j]] = [order[j], order[i]];
+            }
+            return {
+              q: item.q,
+              opts: item.opts,
+              order: order,
+              correctPos: order.indexOf(item.ans),
+            };
+          });
+        }
+
+        let shuffled = createShuffled();
+
+        const viewEl = document.getElementById("view");
+        const gridEl = document.getElementById("qGrid");
+        const scoreEl = document.getElementById("score");
+        const meterEl = document.getElementById("meterFill");
+        const badgeEl = document.getElementById("stepBadge");
+        const progEl = document.getElementById("progressText");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const themeBtn = document.getElementById("themeBtn");
+        const resetBtn = document.getElementById("resetBtn");
+
+        function buildGrid() {
+          gridEl.innerHTML = "";
+          for (let i = 0; i < QUESTIONS.length; i++) {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "q-dot";
+            b.textContent = String(i + 1);
+            b.dataset.slide = String(i + 1);
+            gridEl.appendChild(b);
+          }
+        }
+
+        function refreshSidebar() {
+          const maxPts = QUESTIONS.length * PTS;
+          scoreEl.textContent = String(score);
+          meterEl.style.width = (score / maxPts) * 100 + "%";
+
+          const dots = gridEl.querySelectorAll(".q-dot");
+          dots.forEach((d, idx) => {
+            d.classList.remove("active", "done-ok", "done-bad");
+            if (cur === idx + 1) d.classList.add("active");
+            if (states[idx] === "ok") d.classList.add("done-ok");
+            if (states[idx] === "bad") d.classList.add("done-bad");
+          });
+        }
+
+        function renderQuestion(qIndex) {
+          const item = shuffled[qIndex];
+          const doneState = states[qIndex];
+          const pickedPos = chosen[qIndex];
+
+          viewEl.innerHTML = "";
+          const h2 = document.createElement("h2");
+          h2.textContent = `Вопрос ${qIndex + 1} из ${QUESTIONS.length}`;
+
+          const p = document.createElement("p");
+          p.innerHTML = item.q;
+
+          const ticket = document.createElement("div");
+          ticket.className = "ticket";
+
+          const prompt = document.createElement("div");
+          prompt.className = "q-prompt";
+          prompt.textContent = `Выберите один верный вариант (+${PTS} баллов):`;
+          ticket.appendChild(prompt);
+
+          item.order.forEach((origIdx, pos) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "opt";
+            btn.innerHTML = item.opts[origIdx];
+            btn.dataset.qindex = String(qIndex);
+            btn.dataset.pos = String(pos);
+
+            if (doneState !== null) {
+              btn.classList.add("locked");
+              btn.disabled = true;
+              if (pos === item.correctPos) btn.classList.add("correct");
+              else if (pos === pickedPos && doneState === "bad")
+                btn.classList.add("wrong");
+            }
+            ticket.appendChild(btn);
+          });
+
+          viewEl.appendChild(h2);
+          viewEl.appendChild(p);
+          viewEl.appendChild(ticket);
+        }
+
+        function goSlide(n) {
+          cur = Math.max(0, Math.min(n, TOTAL_SLIDES - 1));
+
+          if (cur === 0) {
+            badgeEl.textContent = "Вступление";
+            viewEl.innerHTML = `
+        <div>
+          <h1>Пользовательские интерфейсы в Unity</h1>
+          <p>Интерактивный тест по конспекту <strong>Урока 12</strong>. Проверьте знания о работе с <code>Canvas</code>, <code>Rect Transform</code>, якорями, элементами <code>Image</code>, текстом, кнопками, режимами рендеринга и настройкой перехода между сценами.</p>
+          <div class="callout">
+            <p style="margin-bottom:8px;"><strong>Формат проверки:</strong> 15 вопросов по 10 баллов (максимум — <strong>150 баллов</strong>).</p>
+            <p style="margin-bottom:0;color:var(--muted);">Нажмите «Далее →» или выберите номер вопроса слева, чтобы начать.</p>
+          </div>
+        </div>
+      `;
+          } else if (cur === TOTAL_SLIDES - 1) {
+            badgeEl.textContent = "Итоги";
+            const maxPts = QUESTIONS.length * PTS;
+            const answered = states.filter((s) => s !== null).length;
+            let verdict =
+              "Стоит ещё раз пройтись по практическим заданиям Урока 12 и попробовать снова.";
+            if (score === maxPts)
+              verdict =
+                "Отличный результат! Вы уверенно ориентируетесь в UI и настройках сцен Unity.";
+            else if (score >= 105)
+              verdict =
+                "Хороший уровень! Осталось повторить пару деталей из конспекта.";
+
+            viewEl.innerHTML = `
+        <div class="summary-card">
+          <div style="font-size:0.95em;color:var(--muted);">Итоговый результат</div>
+          <div class="big-num">${score} / ${maxPts}</div>
+          <p style="margin-bottom:10px;color:var(--muted);">Отвечено вопросов: <strong>${answered}</strong> из ${QUESTIONS.length}</p>
+          <p style="font-size:1.15em;font-weight:600;margin-bottom:18px;">${verdict}</p>
+          <p style="font-size:0.95em;color:var(--muted);margin-bottom:0;">Сделайте скриншот этого экрана и отправьте преподавателю.</p>
+        </div>
+      `;
+          } else {
+            badgeEl.textContent = `Вопрос #${cur}`;
+            renderQuestion(cur - 1);
+          }
+
+          progEl.textContent = `Экран ${cur + 1} из ${TOTAL_SLIDES}`;
+          prevBtn.disabled = cur === 0;
+          nextBtn.disabled = cur === TOTAL_SLIDES - 1;
+          refreshSidebar();
+        }
+
+        prevBtn.addEventListener("click", () => goSlide(cur - 1));
+        nextBtn.addEventListener("click", () => goSlide(cur + 1));
+
+        gridEl.addEventListener("click", (e) => {
+          const dot = e.target.closest(".q-dot");
+          if (dot && dot.dataset.slide) {
+            goSlide(Number(dot.dataset.slide));
+          }
+        });
+
+        viewEl.addEventListener("click", (e) => {
+          const opt = e.target.closest(".opt");
+          if (!opt || opt.classList.contains("locked")) return;
+          const qIndex = Number(opt.dataset.qindex);
+          const chosenPos = Number(opt.dataset.pos);
+          if (states[qIndex] !== null) return;
+
+          chosen[qIndex] = chosenPos;
+          if (chosenPos === shuffled[qIndex].correctPos) {
+            states[qIndex] = "ok";
+            score += PTS;
+          } else {
+            states[qIndex] = "bad";
+          }
+          renderQuestion(qIndex);
+          refreshSidebar();
+        });
+
+        themeBtn.addEventListener("click", () => {
+          const html = document.documentElement;
+          const isLight = html.getAttribute("data-theme") === "light";
+          html.setAttribute("data-theme", isLight ? "dark" : "light");
+          themeBtn.textContent = isLight ? "Светлая тема" : "Тёмная тема";
+        });
+
+        resetBtn.addEventListener("click", () => {
+          score = 0;
+          states = Array(QUESTIONS.length).fill(null);
+          chosen = Array(QUESTIONS.length).fill(null);
+          shuffled = createShuffled();
+          goSlide(0);
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowRight") goSlide(cur + 1);
+          if (e.key === "ArrowLeft") goSlide(cur - 1);
+        });
+
+        buildGrid();
+        goSlide(0);
+      })();
+    </script>
+  </body>
+</html>
